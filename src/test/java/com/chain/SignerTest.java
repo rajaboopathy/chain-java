@@ -2,6 +2,7 @@ package com.chain;
 
 import com.google.gson.Gson;
 import org.bitcoinj.core.AddressFormatException;
+import org.bitcoinj.params.TestNet3Params;
 
 import static org.junit.Assert.*;
 
@@ -17,7 +18,7 @@ public class SignerTest {
         Gson gson = new Gson();
         TransactionTemplate template = gson.fromJson(templateJson, TransactionTemplate.class);
 
-        Signer signer = new Signer(template, keys);
+        Signer signer = new Signer(TestNet3Params.get(), template, keys);
         signer.sign();
 
         TransactionTemplate.Input.Signature signature = template.getInputs()[0].getSignatures()[0];
