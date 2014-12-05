@@ -38,16 +38,16 @@ public class Client {
     }
 
     public TransactionTemplate buildTransaction(TransactionTemplate.Request request) throws Exception {
-        Response res = this.makeRequest("/transactions/build", GSON.toJson(request));
+        Response res = this.post("/transactions/build", GSON.toJson(request));
         return GSON.fromJson(res.body().charStream(), TransactionTemplate.class);
     }
 
     public TransactionTemplate.Response sendTransaction(TransactionTemplate template) throws Exception {
-        Response res = this.makeRequest("/transactions/send", GSON.toJson(template));
+        Response res = this.post("/transactions/send", GSON.toJson(template));
         return GSON.fromJson(res.body().charStream(), TransactionTemplate.Response.class);
     }
 
-    private Response makeRequest(String path, String body) throws Exception {
+    private Response post(String path, String body) throws java.io.IOException {
         Request req = new Request.Builder()
             .url("https://api.chain.com/v2/" + this.blockChain + path)
             .header("Authorization", this.apiCredentials)
