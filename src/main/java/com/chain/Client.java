@@ -6,18 +6,28 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URL;
+
 public class Client {
     public static Gson GSON = new Gson();
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    private String apiCredentials;
+    private URL chainURL;
     private String blockChain;
     private OkHttpClient httpClient;
 
-    public Client(String apiKeyId, String apiKeySecret, String blockChain) {
-        this.apiCredentials = Credentials.basic(apiKeyId, apiKeySecret);
-        this.blockChain = blockChain;
+    public Client(URL chainURL) throws MalformedURLException {
+        this.chainURL = chainURL;
+        this.blockChain = chainURL.toString().contains("testnet") ? "testnet3" : "bitcoin";
         this.httpClient = new OkHttpClient();
+        this.setAuthorization();
+    }
+
+    public Client(String apiKeyId, String apiKeySecret, String blockChain) {
+        this.blockChain = blockChain;
     }
 
     public NetworkParameters getNetworkParams() {
@@ -29,6 +39,11 @@ public class Client {
             default:
                 return MainNetParams.get();
         }
+    }
+
+    public Address getAddress(String address) throws Exception {
+        Response res = this.get("/addresses/" + address);
+        return GSON.fromJson(res.body().charStream(), Address.class);
     }
 
     public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
@@ -49,11 +64,38 @@ public class Client {
 
     private Response post(String path, String body) throws java.io.IOException {
         Request req = new Request.Builder()
-            .url("https://api.chain.com/v2/" + this.blockChain + path)
-            .header("Authorization", this.apiCredentials)
+            .url(this.url(path))
             .post(RequestBody.create(JSON, body))
             .build();
         return this.httpClient.newCall(req).execute();
+    }
+
+    private Response get(String path) throws java.io.IOException {
+        Request req = new Request.Builder()
+            .url(this.url(path))
+            .build();
+        return this.httpClient.newCall(req).execute();
+    }
+
+    private URL url(String path) throws MalformedURLException {
+        return new URL(this.chainURL.toString() + path);
+    }
+    private void setAuthorization() {
+        final String user = this.chainURL.toString().split(":")[0];
+        final String pass = this.chainURL.toString().split(":")[1];
+        this.httpClient.setAuthenticator(new Authenticator() {
+            @Override
+            public Request authenticate(Proxy proxy, Response response) throws IOException {
+                return response.request()
+                        .newBuilder()
+                        .header("Authorization", Credentials.basic(user, pass))
+                        .build();
+            }
+            @Override
+            public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
+                return null;
+            }
+        });
     }
 
 }
