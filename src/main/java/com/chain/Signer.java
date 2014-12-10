@@ -1,8 +1,8 @@
 package com.chain;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.core.Address;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet3Params;
 
 import java.util.HashMap;
 
