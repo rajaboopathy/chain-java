@@ -31,13 +31,10 @@ public class Client {
     }
 
     public NetworkParameters getNetworkParams() {
-        switch (this.blockChain) {
-            case "bitcoin":
-                return MainNetParams.get();
-            case "testnet3":
-                return TestNet3Params.get();
-            default:
-                return MainNetParams.get();
+        if (this.blockChain.contains("testnet")) {
+            return TestNet3Params.get();
+        } else {
+            return MainNetParams.get();
         }
     }
 
