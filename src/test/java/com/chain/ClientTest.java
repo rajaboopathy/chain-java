@@ -2,7 +2,6 @@ package com.chain;
 
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
-
 import java.math.BigInteger;
 import static org.junit.Assert.*;
 
@@ -26,13 +25,14 @@ public class ClientTest {
 
     @org.junit.Test
     public void testGetAddress() throws Exception {
-        String j = "{\"address\":\"17x23dNjXJLzGMev6R63uyRhMWP1VHawKc\",\"total\":{\"balance\":5000000000,\"received\":5000000000,\"sent\":0},\"confirmed\":{\"balance\":5000000000,\"received\":5000000000,\"sent\":0}}";
+        String j = "[{\"address\":\"17x23dNjXJLzGMev6R63uyRhMWP1VHawKc\",\"total\":{\"balance\":5000000000,\"received\":5000000000,\"sent\":0},\"confirmed\":{\"balance\":5000000000,\"received\":5000000000,\"sent\":0}}]";
         MockWebServer server = new MockWebServer();
         server.enqueue(new MockResponse().setBody(j));
         server.play();
 
         Client c = new Client(server.getUrl("/"));
-        Address a = c.getAddress("17x23dNjXJLzGMev6R63uyRhMWP1VHawKc");
-        assertEquals(new BigInteger("5000000000"), a.getTotal().getBalance());
+        Address[] a = c.getAddress("17x23dNjXJLzGMev6R63uyRhMWP1VHawKc");
+        assertEquals(new BigInteger("5000000000"), a[0].getTotal().getBalance());
     }
+
 }

@@ -6,7 +6,6 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -38,9 +37,9 @@ public class Client {
         }
     }
 
-    public Address getAddress(String address) throws Exception {
+    public Address[] getAddress(String address) throws Exception {
         Response res = this.get("/addresses/" + address);
-        return GSON.fromJson(res.body().charStream(), Address.class);
+        return GSON.fromJson(res.body().charStream(), Address[].class);
     }
 
     public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
@@ -78,19 +77,29 @@ public class Client {
         return new URL(this.chainURL.toString() + path);
     }
     private void setAuthorization() {
-        final String user = this.chainURL.toString().split(":")[0];
-        final String pass = this.chainURL.toString().split(":")[1];
+        final String userInfo = this.chainURL.getUserInfo();
         this.httpClient.setAuthenticator(new Authenticator() {
             @Override
-            public Request authenticate(Proxy proxy, Response response) throws IOException {
-                return response.request()
-                        .newBuilder()
-                        .header("Authorization", Credentials.basic(user, pass))
-                        .build();
+            public Request authenticate(Proxy proxy, Response response) {
+                Request.Builder builder = response.request().newBuilder();
+                if (userInfo != null) {
+                    String user = "";
+                    String pass = "";
+                    String[] parts = userInfo.split(":");
+                    if (parts.length >= 1) {
+                        user = parts[0];
+                    }
+                    if (parts.length >= 2) {
+                        pass = parts[1];
+                    }
+                    builder.header("Authorization", Credentials.basic(user, pass));
+                }
+                return builder.build();
             }
+
             @Override
-            public Request authenticateProxy(Proxy proxy, Response response) throws IOException {
-                return null;
+            public Request authenticateProxy(Proxy proxy, Response response) {
+                return null; // Null indicates no attempt to authenticate.
             }
         });
     }
