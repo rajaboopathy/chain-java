@@ -40,6 +40,16 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), Address[].class);
     }
 
+    public Transaction[] getAddressTransactions(String address) throws Exception {
+        Response res = this.get("/addresses" + address + "/transactions");
+        return GSON.fromJson(res.body().charStream(), Transaction[].class);
+    }
+
+    public Transaction.Output[] getAddressUnspents(String address) throws Exception {
+        Response res = this.get("/addresses" + address + "/unspents");
+        return GSON.fromJson(res.body().charStream(), Transaction.Output[].class);
+    }
+
     public Transaction getTransaction(String transactionHash) throws Exception {
         Response res = this.get("/transactions/" + transactionHash);
         return GSON.fromJson(res.body().charStream(), Transaction.class);
