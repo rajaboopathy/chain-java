@@ -7,7 +7,6 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
 import java.net.MalformedURLException;
-import java.net.Proxy;
 import java.net.URL;
 
 public class Client {
@@ -22,7 +21,6 @@ public class Client {
         this.chainURL = chainURL;
         this.blockChain = chainURL.toString().contains("testnet") ? "testnet3" : "bitcoin";
         this.httpClient = new OkHttpClient();
-        this.setAuthorization();
     }
 
     public Client(String apiKeyId, String apiKeySecret, String blockChain) {
@@ -60,48 +58,39 @@ public class Client {
 
     private Response post(String path, String body) throws java.io.IOException {
         Request req = new Request.Builder()
-            .url(this.url(path))
-            .post(RequestBody.create(JSON, body))
-            .build();
+                .url(this.url(path))
+                .header("Authorization", this.credentials())
+                .post(RequestBody.create(JSON, body))
+                .build();
         return this.httpClient.newCall(req).execute();
     }
 
     private Response get(String path) throws java.io.IOException {
         Request req = new Request.Builder()
-            .url(this.url(path))
-            .build();
+                .url(this.url(path))
+                .header("Authorization", this.credentials())
+                .build();
         return this.httpClient.newCall(req).execute();
     }
 
     private URL url(String path) throws MalformedURLException {
         return new URL(this.chainURL.toString() + path);
     }
-    private void setAuthorization() {
-        final String userInfo = this.chainURL.getUserInfo();
-        this.httpClient.setAuthenticator(new Authenticator() {
-            @Override
-            public Request authenticate(Proxy proxy, Response response) {
-                Request.Builder builder = response.request().newBuilder();
-                if (userInfo != null) {
-                    String user = "";
-                    String pass = "";
-                    String[] parts = userInfo.split(":");
-                    if (parts.length >= 1) {
-                        user = parts[0];
-                    }
-                    if (parts.length >= 2) {
-                        pass = parts[1];
-                    }
-                    builder.header("Authorization", Credentials.basic(user, pass));
-                }
-                return builder.build();
-            }
 
-            @Override
-            public Request authenticateProxy(Proxy proxy, Response response) {
-                return null; // Null indicates no attempt to authenticate.
+    private String credentials() {
+        String userInfo = this.chainURL.getUserInfo();
+        String user = "";
+        String pass = "";
+        if (userInfo != null) {
+            String[] parts = userInfo.split(":");
+            if (parts.length >= 1) {
+                user = parts[0];
             }
-        });
+            if (parts.length >= 2) {
+                pass = parts[1];
+            }
+        }
+        return Credentials.basic(user, pass);
     }
 
 }
