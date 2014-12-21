@@ -60,6 +60,16 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
+    public Block getBlock(Integer blockHeight) throws Exception {
+        Response res = this.get("/blocks/" + blockHeight.toString());
+        return GSON.fromJson(res.body().charStream(), Block.class);
+    }
+
+    public Block getLatestBlock() throws Exception {
+        Response res = this.get("/blocks/latest");
+        return GSON.fromJson(res.body().charStream(), Block.class);
+    }
+
     public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
         TransactionTemplate template = this.buildTransaction(request);
         template.sign(this.getNetworkParams(), keys);
