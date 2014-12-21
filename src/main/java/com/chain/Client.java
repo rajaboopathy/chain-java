@@ -55,6 +55,11 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), Transaction.class);
     }
 
+    public Block getBlock(String blockHash) throws Exception {
+        Response res = this.get("/blocks/" + blockHash);
+        return GSON.fromJson(res.body().charStream(), Block.class);
+    }
+
     public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
         TransactionTemplate template = this.buildTransaction(request);
         template.sign(this.getNetworkParams(), keys);
