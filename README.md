@@ -16,7 +16,7 @@ Maven
 </dependency>
 ```
 
-Gradel
+Gradle
 
 ```
 compile 'com.chain:chain-java:0.0.4'
