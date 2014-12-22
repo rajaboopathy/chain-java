@@ -1,6 +1,8 @@
 package com.chain;
 
+import com.google.common.base.Joiner;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.squareup.okhttp.*;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
@@ -11,8 +13,32 @@ import java.net.URL;
 
 /**
  * Client is the object that ties together everything needed to interact with api.chain.com
+ * See https://chain.com/docs
  */
 public class Client {
+
+    /**
+     * ChainException wraps errors returned by the API.
+     * Each error contains a brief description in addition
+     * to a unique error code. The error code can be used by
+     * Chain Support to diagnose the exact cause of the error.
+     */
+    public static class ChainException extends Exception {
+        public ChainException(String message) {
+            super(message);
+        }
+
+        @SerializedName("message")
+        public String chainMessage;
+        @SerializedName("code")
+        public String chainCode;
+
+        public String getMessage()
+        {
+            return this.chainMessage + " " + this.chainCode;
+        }
+    }
+
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static Gson GSON = new Gson();
     private URL chainURL;
@@ -20,8 +46,9 @@ public class Client {
     private OkHttpClient httpClient;
 
     /**
+     * Create a new chain client.
      * @param chainURL E.g. https://KEY-ID:KEY-SECRET@api.chain.com/v2/bitcoin
-     * @throws java.net.MalformedURLException
+     * @throws MalformedURLException
      */
     public Client(URL chainURL) throws MalformedURLException {
         this.chainURL = chainURL;
@@ -29,6 +56,12 @@ public class Client {
         this.httpClient = new OkHttpClient();
     }
 
+    /**
+     * Returns bitcoinj compatible network parameters based chainURL.
+     * This is useful if you specified the network when instantiating a chain Client
+     * and then need to interact with bitcoinj related functions which require NetworkParams.
+     * @return org.bitcoinj.core.NetworkParameters
+     */
     public NetworkParameters getNetworkParams() {
         if (this.blockChain.contains("testnet")) {
             return TestNet3Params.get();
@@ -37,18 +70,23 @@ public class Client {
         }
     }
 
-    public Address[] getAddress(String address) throws Exception {
+    public Address getAddress(String address) throws Exception {
         Response res = this.get("/addresses/" + address);
+        return GSON.fromJson(res.body().charStream(), Address[].class)[0];
+    }
+
+    public Address[] getAddress(String[] addresses) throws Exception {
+        Response res = this.get("/addresses/" + Joiner.on(',').join(addresses));
         return GSON.fromJson(res.body().charStream(), Address[].class);
     }
 
     public Transaction[] getAddressTransactions(String address) throws Exception {
-        Response res = this.get("/addresses" + address + "/transactions");
+        Response res = this.get("/addresses/" + address + "/transactions");
         return GSON.fromJson(res.body().charStream(), Transaction[].class);
     }
 
     public Transaction.Output[] getAddressUnspents(String address) throws Exception {
-        Response res = this.get("/addresses" + address + "/unspents");
+        Response res = this.get("/addresses/" + address + "/unspents");
         return GSON.fromJson(res.body().charStream(), Transaction.Output[].class);
     }
 
@@ -72,6 +110,15 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
+    /**
+     * Transact uses the API to build a template, signs the template locally,
+     * and then submits the signed template back to the API for network propagation.
+     * Private keys never leave the local process.
+     * @param request E.g. {address: }
+     * @param keys An array of private keys in WIF format.
+     * @return
+     * @throws Exception
+     */
     public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
         TransactionTemplate template = this.buildTransaction(request);
         template.sign(this.getNetworkParams(), keys);
@@ -88,21 +135,30 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), TransactionTemplate.Response.class);
     }
 
-    private Response post(String path, String body) throws java.io.IOException {
+    private Response post(String path, String body) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
                 .header("Authorization", this.credentials())
                 .post(RequestBody.create(JSON, body))
                 .build();
-        return this.httpClient.newCall(req).execute();
+        Response resp = this.httpClient.newCall(req).execute();
+        return this.checkError(resp);
     }
 
-    private Response get(String path) throws java.io.IOException {
+    private Response get(String path) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
                 .header("Authorization", this.credentials())
                 .build();
-        return this.httpClient.newCall(req).execute();
+        Response resp = this.httpClient.newCall(req).execute();
+        return this.checkError(resp);
+    }
+
+    private Response checkError(Response response) throws Exception {
+        if ((response.code() / 100) != 2) {
+            throw GSON.fromJson(response.body().charStream(), ChainException.class);
+        }
+        return response;
     }
 
     private URL url(String path) throws MalformedURLException {
