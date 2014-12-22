@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chain</groupId>
     <artifactId>chain-java</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>The Official Java SDK for Chain's Bitcoin API </description>
     <url>https://github.com/chain-engineering/chain-java</url>
