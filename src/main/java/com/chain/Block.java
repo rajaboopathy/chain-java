@@ -7,14 +7,17 @@ import java.util.Date;
 
 public class Block {
     public String hash;
-    @SerializedName("previous_block_hash") public String previousBlockHash;
+    @SerializedName("previous_block_hash")
+    public String previousBlockHash;
     public Integer height;
     public Integer confirmations;
-    @SerializedName("merkle_root") public String merkleRoot;
+    @SerializedName("merkle_root")
+    public String merkleRoot;
     public Date time;
     public Integer nonce;
     public BigDecimal difficulty;
-    @SerializedName("transaction_hashes") public String[] transactionHashes;
+    @SerializedName("transaction_hashes")
+    public String[] transactionHashes;
 
     public String getHash() {
         return hash;

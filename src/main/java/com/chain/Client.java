@@ -9,22 +9,24 @@ import org.bitcoinj.params.TestNet3Params;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * Client is the object that ties together everything needed to interact with api.chain.com
+ */
 public class Client {
-    public static Gson GSON = new Gson();
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
+    public static Gson GSON = new Gson();
     private URL chainURL;
     private String blockChain;
     private OkHttpClient httpClient;
 
+    /**
+     * @param chainURL E.g. https://KEY-ID:KEY-SECRET@api.chain.com/v2/bitcoin
+     * @throws java.net.MalformedURLException
+     */
     public Client(URL chainURL) throws MalformedURLException {
         this.chainURL = chainURL;
         this.blockChain = chainURL.toString().contains("testnet") ? "testnet3" : "bitcoin";
         this.httpClient = new OkHttpClient();
-    }
-
-    public Client(String apiKeyId, String apiKeySecret, String blockChain) {
-        this.blockChain = blockChain;
     }
 
     public NetworkParameters getNetworkParams() {

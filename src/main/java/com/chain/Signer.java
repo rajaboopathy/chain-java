@@ -1,7 +1,7 @@
 package com.chain;
 
-import org.bitcoinj.core.*;
 import org.bitcoinj.core.Address;
+import org.bitcoinj.core.*;
 import org.bitcoinj.params.MainNetParams;
 
 import java.util.HashMap;
@@ -10,12 +10,12 @@ public class Signer {
     private TransactionTemplate transactionTemplate;
     private HashMap<String, ECKey> keyMap;
 
-    public Signer(NetworkParameters parameters, TransactionTemplate t, String []keys) throws AddressFormatException {
+    public Signer(NetworkParameters parameters, TransactionTemplate t, String[] keys) throws AddressFormatException {
         this.transactionTemplate = t;
         this.setKeyMap(parameters, keys);
     }
 
-    public Signer(TransactionTemplate t, String []keys) throws AddressFormatException {
+    public Signer(TransactionTemplate t, String[] keys) throws AddressFormatException {
         this.transactionTemplate = t;
         this.setKeyMap(MainNetParams.get(), keys);
     }
@@ -26,7 +26,7 @@ public class Signer {
 
     public void sign() {
         for (TransactionTemplate.Input input : this.transactionTemplate.getInputs()) {
-            for(TransactionTemplate.Input.Signature sig : input.getSignatures()) {
+            for (TransactionTemplate.Input.Signature sig : input.getSignatures()) {
                 ECKey key = this.keyMap.get(sig.getAddress());
                 if (key == null) {
                     continue;
@@ -39,9 +39,10 @@ public class Signer {
             }
         }
     }
+
     private void setKeyMap(NetworkParameters parameters, String[] keys) throws AddressFormatException {
         this.keyMap = new HashMap<String, ECKey>();
-        for(String key : keys) {
+        for (String key : keys) {
             ECKey ecKey = new DumpedPrivateKey(parameters, key).getKey();
             Address address = ecKey.toAddress(parameters);
             this.keyMap.put(address.toString(), ecKey);
