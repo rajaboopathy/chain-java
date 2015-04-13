@@ -105,6 +105,49 @@ public class Client {
         return getBlock("latest");
     }
 
+    // Wallet endpoints
+
+    public Wallet getWallet(String id) throws Exception {
+        return this.get("/wallets/" + id, Wallet.class);
+    }
+
+    public Wallet[] getWallets() throws Exception {
+        return this.get("/wallets", Wallet[].class);
+    }
+
+    public Wallet.Balance getWalletBalance(String id) throws Exception {
+        return this.get("/wallets/" + id + "/balance", Wallet.Balance.class);
+    }
+
+    public Bucket[] getBuckets(String walletID) throws Exception {
+        return this.get("/wallets/" + walletID + "/buckets", Bucket[].class);
+    }
+
+    public Bucket createBucket(String walletID) throws Exception {
+        return this.post("/wallets/" + walletID + "/buckets", "", Bucket.class);
+    }
+
+    public Bucket getBucket(String id) throws Exception {
+        return this.get("/buckets/" + id, Bucket.class);
+    }
+
+    public Bucket.ActivityItem[] getBucketActivity(String id) throws Exception {
+        return this.get("/buckets/" + id + "/activity", Bucket.ActivityItem[].class);
+    }
+
+    public Receiver createReceiver(String bucketID, BigInteger amt, Date expires, String memo) throws Exception {
+        Receiver.CreateRequest req = new Receiver.CreateRequest(amt, expires, memo);
+        Receiver rec = this.post("/buckets/" + bucketID + "/receivers", GSON.toJson(req), Receiver.class);
+        rec.Verify();
+        return rec;
+    }
+
+    public Receiver getReceiver(String id) throws Exception {
+        Receiver rec = this.get("/receivers/" + id, Receiver.class);
+        rec.Verify();
+        return rec;
+    }
+
     private <T> T post(String path, String body, Class<T> tClass) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
