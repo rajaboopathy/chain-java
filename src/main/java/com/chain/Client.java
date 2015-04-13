@@ -111,31 +111,6 @@ public class Client {
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
-    /**
-     * Transact uses the API to build a template, signs the template locally,
-     * and then submits the signed template back to the API for network propagation.
-     * Private keys never leave the local process.
-     * @param request E.g. {address: }
-     * @param keys An array of private keys in WIF format.
-     * @return
-     * @throws Exception
-     */
-    public TransactionTemplate.Response transact(TransactionTemplate.Request request, String[] keys) throws Exception {
-        TransactionTemplate template = this.buildTransaction(request);
-        template.sign(this.getNetworkParams(), keys);
-        return this.sendTransaction(template);
-    }
-
-    public TransactionTemplate buildTransaction(TransactionTemplate.Request request) throws Exception {
-        Response res = this.post("/transactions/build", GSON.toJson(request));
-        return GSON.fromJson(res.body().charStream(), TransactionTemplate.class);
-    }
-
-    public TransactionTemplate.Response sendTransaction(TransactionTemplate template) throws Exception {
-        Response res = this.post("/transactions/send", GSON.toJson(template));
-        return GSON.fromJson(res.body().charStream(), TransactionTemplate.Response.class);
-    }
-
     private Response post(String path, String body) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
