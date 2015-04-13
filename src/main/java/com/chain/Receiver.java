@@ -23,9 +23,45 @@ public class Receiver {
 
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getPaymentDetails() {
+        return paymentDetails;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public Date getExpires() {
+        return expires;
+    }
+
+    public Components getAddressComponents() {
+        return addressComponents;
+    }
+
+    public String getBlockChain() {
+        return blockChain;
+    }
+
     public static class Components {
         public Integer sigsRequired;
         public Signer[] signers;
+
+        public Integer getSigsRequired() {
+            return sigsRequired;
+        }
+
+        public Signer[] getSigners() {
+            return signers;
+        }
     }
 
     public static class Signer {
@@ -34,6 +70,22 @@ public class Receiver {
         @SerializedName("derivation_path")
         public Integer[] derivationPath;
         public String pubkey;
+
+        public String getEntity() {
+            return entity;
+        }
+
+        public String getXpub() {
+            return xpub;
+        }
+
+        public Integer[] getDerivationPath() {
+            return derivationPath;
+        }
+
+        public String getPubkey() {
+            return pubkey;
+        }
     }
 
     public static class CreateRequest {
@@ -46,5 +98,17 @@ public class Receiver {
         public BigInteger amount;
         public String memo;
         public Date expires;
+
+        public BigInteger getAmount() {
+            return amount;
+        }
+
+        public String getMemo() {
+            return memo;
+        }
+
+        public Date getExpires() {
+            return expires;
+        }
     }
 }
