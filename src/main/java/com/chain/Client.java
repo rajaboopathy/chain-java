@@ -8,8 +8,10 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 
 /**
  * Client is the object that ties together everything needed to interact with api.chain.com
@@ -72,62 +74,56 @@ public class Client {
     }
 
     public Address getAddress(String address) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/addresses/" + address);
-        return GSON.fromJson(res.body().charStream(), Address[].class)[0];
+        return this.get("/" + this.blockChain + "/addresses/" + address, Address[].class)[0];
     }
 
     public Address[] getAddress(String[] addresses) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/addresses/" + Joiner.on(',').join(addresses));
-        return GSON.fromJson(res.body().charStream(), Address[].class);
+        return this.get("/" + this.blockChain + "/addresses/" + Joiner.on(',').join(addresses), Address[].class);
     }
 
     public Transaction[] getAddressTransactions(String address) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/addresses/" + address + "/transactions");
-        return GSON.fromJson(res.body().charStream(), Transaction[].class);
+        return this.get("/" + this.blockChain + "/addresses/" + address + "/transactions", Transaction[].class);
     }
 
     public Transaction.Output[] getAddressUnspents(String address) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/addresses/" + address + "/unspents");
-        return GSON.fromJson(res.body().charStream(), Transaction.Output[].class);
+        return this.get("/" + this.blockChain + "/addresses/" + address + "/unspents", Transaction.Output[].class);
     }
 
     public Transaction getTransaction(String transactionHash) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/transactions/" + transactionHash);
-        return GSON.fromJson(res.body().charStream(), Transaction.class);
+        return this.get("/" + this.blockChain + "/transactions/" + transactionHash, Transaction.class);
     }
 
     public Block getBlock(String blockHash) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/blocks/" + blockHash);
-        return GSON.fromJson(res.body().charStream(), Block.class);
+        return this.get("/" + this.blockChain + "/blocks/" + blockHash, Block.class);
     }
 
     public Block getBlock(Integer blockHeight) throws Exception {
-        Response res = this.get("/" + this.blockChain + "/blocks/" + blockHeight.toString());
-        return GSON.fromJson(res.body().charStream(), Block.class);
+        return this.get("/" + this.blockChain + "/blocks/" + blockHeight.toString(), Block.class);
     }
 
     public Block getLatestBlock() throws Exception {
-        Response res = this.get("/" + this.blockChain + "/blocks/latest");
-        return GSON.fromJson(res.body().charStream(), Block.class);
+        return getBlock("latest");
     }
 
-    private Response post(String path, String body) throws Exception {
+    private <T> T post(String path, String body, Class<T> tClass) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
                 .header("Authorization", this.credentials())
                 .post(RequestBody.create(JSON, body))
                 .build();
         Response resp = this.httpClient.newCall(req).execute();
-        return this.checkError(resp);
+        resp = this.checkError(resp);
+        return GSON.fromJson(resp.body().charStream(), tClass);
     }
 
-    private Response get(String path) throws Exception {
+    private <T> T get(String path, Class<T> tClass) throws Exception {
         Request req = new Request.Builder()
                 .url(this.url(path))
                 .header("Authorization", this.credentials())
                 .build();
         Response resp = this.httpClient.newCall(req).execute();
-        return this.checkError(resp);
+        resp = this.checkError(resp);
+        return GSON.fromJson(resp.body().charStream(), tClass);
     }
 
     private Response checkError(Response response) throws Exception {
