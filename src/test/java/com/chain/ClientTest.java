@@ -20,7 +20,7 @@ public class ClientTest {
         req.addAddressInput("mhALPqBgS91s7hVDEJbf9ri1KRnSxriJhr");
         req.addOutput("mhALPqBgS91s7hVDEJbf9ri1KRnSxriJhr", 10000);
 
-        Client c = new Client(server.getUrl("/"));
+        Client c = new Client(server.getUrl("/"), "bitcoin");
         TransactionTemplate template = c.buildTransaction(req);
         assertEquals(10000, template.getMinerFee());
     }
@@ -32,7 +32,7 @@ public class ClientTest {
         server.enqueue(new MockResponse().setBody(j));
         server.play();
 
-        Client c = new Client(server.getUrl("/"));
+        Client c = new Client(server.getUrl("/"), "bitcoin");
         Address address = c.getAddress("17x23dNjXJLzGMev6R63uyRhMWP1VHawKc");
         assertEquals(new BigInteger("5000000000"), address.getTotal().getBalance());
     }
@@ -44,7 +44,7 @@ public class ClientTest {
         server.enqueue(new MockResponse().setBody(j));
         server.play();
 
-        Client c = new Client(server.getUrl("/"));
+        Client c = new Client(server.getUrl("/"), "bitcoin");
         Address[] addresses = c.getAddress(new String[]{"17x23dNjXJLzGMev6R63uyRhMWP1VHawKc"});
         assertEquals(new BigInteger("5000000000"), addresses[0].getTotal().getBalance());
     }
@@ -56,7 +56,7 @@ public class ClientTest {
         server.enqueue(new MockResponse().setBody(j));
         server.play();
 
-        Client c = new Client(server.getUrl("/"));
+        Client c = new Client(server.getUrl("/"), "bitcoin");
         Transaction transaction = c.getTransaction("277fcf7c52e3faad633c5b9a8b3833634614ffd49fb121a187b1f769dc6c61b3");
         assertEquals("00000000000000000f51bf3aa8863663ef66e373c094474147ba54933a110051", transaction.getBlockHash());
     }

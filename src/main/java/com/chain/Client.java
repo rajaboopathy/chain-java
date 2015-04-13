@@ -40,6 +40,7 @@ public class Client {
     }
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public static final String ChainVersion = "v3";
     public static Gson GSON = new Gson();
     private URL chainURL;
     private String blockChain;
@@ -47,12 +48,12 @@ public class Client {
 
     /**
      * Create a new chain client.
-     * @param chainURL E.g. https://KEY-ID:KEY-SECRET@api.chain.com/v2/bitcoin
+     * @param chainURL E.g. https://KEY-ID:KEY-SECRET@api.chain.com/
      * @throws MalformedURLException
      */
-    public Client(URL chainURL) throws MalformedURLException {
+    public Client(URL chainURL, String blockChain) throws MalformedURLException {
         this.chainURL = chainURL;
-        this.blockChain = chainURL.toString().contains("testnet") ? "testnet3" : "bitcoin";
+        this.blockChain = blockChain;
         this.httpClient = new OkHttpClient();
     }
 
@@ -71,42 +72,42 @@ public class Client {
     }
 
     public Address getAddress(String address) throws Exception {
-        Response res = this.get("/addresses/" + address);
+        Response res = this.get("/" + this.blockChain + "/addresses/" + address);
         return GSON.fromJson(res.body().charStream(), Address[].class)[0];
     }
 
     public Address[] getAddress(String[] addresses) throws Exception {
-        Response res = this.get("/addresses/" + Joiner.on(',').join(addresses));
+        Response res = this.get("/" + this.blockChain + "/addresses/" + Joiner.on(',').join(addresses));
         return GSON.fromJson(res.body().charStream(), Address[].class);
     }
 
     public Transaction[] getAddressTransactions(String address) throws Exception {
-        Response res = this.get("/addresses/" + address + "/transactions");
+        Response res = this.get("/" + this.blockChain + "/addresses/" + address + "/transactions");
         return GSON.fromJson(res.body().charStream(), Transaction[].class);
     }
 
     public Transaction.Output[] getAddressUnspents(String address) throws Exception {
-        Response res = this.get("/addresses/" + address + "/unspents");
+        Response res = this.get("/" + this.blockChain + "/addresses/" + address + "/unspents");
         return GSON.fromJson(res.body().charStream(), Transaction.Output[].class);
     }
 
     public Transaction getTransaction(String transactionHash) throws Exception {
-        Response res = this.get("/transactions/" + transactionHash);
+        Response res = this.get("/" + this.blockChain + "/transactions/" + transactionHash);
         return GSON.fromJson(res.body().charStream(), Transaction.class);
     }
 
     public Block getBlock(String blockHash) throws Exception {
-        Response res = this.get("/blocks/" + blockHash);
+        Response res = this.get("/" + this.blockChain + "/blocks/" + blockHash);
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
     public Block getBlock(Integer blockHeight) throws Exception {
-        Response res = this.get("/blocks/" + blockHeight.toString());
+        Response res = this.get("/" + this.blockChain + "/blocks/" + blockHeight.toString());
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
     public Block getLatestBlock() throws Exception {
-        Response res = this.get("/blocks/latest");
+        Response res = this.get("/" + this.blockChain + "/blocks/latest");
         return GSON.fromJson(res.body().charStream(), Block.class);
     }
 
@@ -162,7 +163,7 @@ public class Client {
     }
 
     private URL url(String path) throws MalformedURLException {
-        return new URL(this.chainURL.toString() + path);
+        return new URL(this.chainURL.toString() + "/" + ChainVersion + "/" + path);
     }
 
     private String credentials() {
